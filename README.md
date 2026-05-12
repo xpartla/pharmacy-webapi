@@ -1,4 +1,4 @@
-# pharmacy-webapi
+# pharmacy-webapi 
 
 Go + Gin REST API backing the `pharmacy-ufe` micro-frontend. Persists `Pharmacy` documents in MongoDB; each document embeds its own product list and predefined category list. Soft delete on products (DELETE flips `active=false`).
 

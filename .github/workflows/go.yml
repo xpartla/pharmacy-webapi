@@ -24,11 +24,10 @@ jobs:
           go-version: ${{ steps.get_go_version.outputs.go_version }}
 
       - name: Generate api controllers interfaces
-        uses: craicoverflow/openapi-generator-generate-action@v1.2.1
-        with:
-          generator: go-gin-server
-          input: api/pharmacy-product.openapi.yaml
-          additional-properties: apiPath=internal/pharmacy_product,packageName=pharmacy_product,interfaceOnly=true
+        run: |
+          docker run --rm -v "$PWD":/local \
+            openapitools/openapi-generator-cli:v7.22.0 \
+            generate -c /local/scripts/generator-cfg.yaml
 
       - name: Build
         run: go build -v ./cmd/pharmacy-api-service

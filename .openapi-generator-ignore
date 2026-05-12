@@ -1,4 +1,11 @@
-# Don't regenerate hand-written implementation/extension/test files when running the generator.
+# Block the generator's default scaffolds — we have our own at the right paths.
+main.go
+go.mod
+Dockerfile
+README.md
+api/openapi.yaml
+
+# Protect hand-written implementation/extension/test files when regenerating.
 internal/pharmacy_product/impl_*.go
 internal/pharmacy_product/ext_*.go
 internal/pharmacy_product/utils_*.go

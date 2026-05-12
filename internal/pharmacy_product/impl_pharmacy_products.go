@@ -14,13 +14,34 @@ func NewPharmacyProductsApi() PharmacyProductsAPI {
 	return &implPharmacyProductsAPI{}
 }
 
-// GetProducts returns only products where Active == true. Soft-deleted products
-// are hidden from the listing endpoint.
+// GetProducts returns the pharmacy's products filtered by the `include` query
+// parameter: "active" (default) hides soft-deleted items, "inactive" returns only
+// soft-deleted items, "all" returns everything.
 func (o implPharmacyProductsAPI) GetProducts(c *gin.Context) {
+	include := c.DefaultQuery("include", "active")
+	switch include {
+	case "active", "inactive", "all":
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "include must be one of: active, inactive, all",
+		})
+		return
+	}
+
 	updatePharmacyFunc(c, func(_ *gin.Context, pharmacy *Pharmacy) (*Pharmacy, interface{}, int) {
 		visible := make([]Product, 0, len(pharmacy.Products))
 		for _, p := range pharmacy.Products {
-			if p.Active {
+			switch include {
+			case "active":
+				if p.Active {
+					visible = append(visible, p)
+				}
+			case "inactive":
+				if !p.Active {
+					visible = append(visible, p)
+				}
+			case "all":
 				visible = append(visible, p)
 			}
 		}

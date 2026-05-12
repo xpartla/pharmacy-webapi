@@ -181,3 +181,85 @@ func TestGetProduct_NotFound(t *testing.T) {
 	engine.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 }
+
+func TestGetProducts_IncludeInactive(t *testing.T) {
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/api/products/lekaren-centrum/items?include=inactive", nil)
+	engine.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var products []Product
+	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &products))
+	assert.Len(t, products, 1)
+	assert.Equal(t, "p2", products[0].Id)
+	assert.False(t, products[0].Active)
+}
+
+func TestGetProducts_IncludeAll(t *testing.T) {
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/api/products/lekaren-centrum/items?include=all", nil)
+	engine.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var products []Product
+	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &products))
+	assert.Len(t, products, 2)
+}
+
+func TestGetProducts_IncludeInvalid(t *testing.T) {
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/api/products/lekaren-centrum/items?include=garbage", nil)
+	engine.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestUpdateProduct_Reactivate(t *testing.T) {
+	// p2 starts inactive in the seed — PUT with active=true should restore it.
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	body, _ := json.Marshal(Product{Active: true, Stock: 1})
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPut, "/api/products/lekaren-centrum/items/p2", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	engine.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var updated Product
+	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &updated))
+	assert.True(t, updated.Active, "PUT should be able to flip active back to true")
+}
+
+func TestCreatePharmacy_Conflict(t *testing.T) {
+	// Seed already contains lekaren-centrum; POSTing the same id must 409.
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	body, _ := json.Marshal(Pharmacy{Id: "lekaren-centrum", Name: "Duplicate"})
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPost, "/api/pharmacy", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	engine.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusConflict, rec.Code)
+}
+
+func TestDeletePharmacy_NotFound(t *testing.T) {
+	db := newFakeDb(sampleSeed())
+	engine := newTestEngine(db)
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodDelete, "/api/pharmacy/no-such-pharmacy", nil)
+	engine.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+}

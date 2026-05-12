@@ -80,7 +80,8 @@ paths:
       operationId: getProducts
       description: >-
         Returns the list of products of the pharmacy.
-        Only active products are returned; soft-deleted (active=false) products are hidden.
+        By default only active products are returned; pass `include=inactive` to
+        get the soft-deleted ones, or `include=all` to get every product regardless of status.
       parameters:
         - in: path
           name: pharmacyId
@@ -88,9 +89,20 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: include
+          description: which products to return based on the active flag
+          required: false
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+              - all
+            default: active
       responses:
         "200":
-          description: list of active products
+          description: list of products matching the include filter
           content:
             application/json:
               schema:

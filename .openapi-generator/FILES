@@ -1,0 +1,8 @@
+internal/pharmacy_product/README.md
+internal/pharmacy_product/api_pharmacies.go
+internal/pharmacy_product/api_pharmacy_categories.go
+internal/pharmacy_product/api_pharmacy_products.go
+internal/pharmacy_product/model_category.go
+internal/pharmacy_product/model_pharmacy.go
+internal/pharmacy_product/model_product.go
+internal/pharmacy_product/routers.go

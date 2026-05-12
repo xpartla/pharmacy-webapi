@@ -1,0 +1,5 @@
+# Don't regenerate hand-written implementation/extension/test files when running the generator.
+internal/pharmacy_product/impl_*.go
+internal/pharmacy_product/ext_*.go
+internal/pharmacy_product/utils_*.go
+internal/pharmacy_product/*_test.go

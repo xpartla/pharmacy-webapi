@@ -1,0 +1,5 @@
+/pharmacy-api-service
+*.exe
+.DS_Store
+.idea/
+.vscode/

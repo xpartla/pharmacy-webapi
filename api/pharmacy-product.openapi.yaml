@@ -1,0 +1,370 @@
+openapi: 3.0.0
+servers:
+  - description: Cluster Endpoint
+    url: /api
+info:
+  description: Pharmacy product inventory for Web-In-Cloud system
+  version: "1.0.0"
+  title: Pharmacy Product Api
+  contact:
+    email: xpartla@stuba.sk
+  license:
+    name: CC BY 4.0
+    url: "https://creativecommons.org/licenses/by/4.0/"
+tags:
+  - name: pharmacyProducts
+    description: Product inventory of a pharmacy
+  - name: pharmacyCategories
+    description: Predefined product categories for the pharmacy
+  - name: pharmacies
+    description: Pharmacy management
+
+paths:
+  "/pharmacy":
+    post:
+      tags:
+        - pharmacies
+      summary: Saves new pharmacy definition
+      operationId: createPharmacy
+      description: Use this method to initialize new pharmacy in the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pharmacy"
+            examples:
+              request-sample:
+                $ref: "#/components/examples/PharmacyExample"
+        description: Pharmacy details to store
+        required: true
+      responses:
+        "200":
+          description: Value of stored pharmacy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pharmacy"
+              examples:
+                updated-response:
+                  $ref: "#/components/examples/PharmacyExample"
+        "400":
+          description: Missing mandatory properties of input object.
+        "409":
+          description: Pharmacy with the specified id already exists
+
+  "/pharmacy/{pharmacyId}":
+    delete:
+      tags:
+        - pharmacies
+      summary: Deletes specific pharmacy
+      operationId: deletePharmacy
+      description: Use this method to delete the specific pharmacy from the system.
+      parameters:
+        - in: path
+          name: pharmacyId
+          description: pass the id of the particular pharmacy
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Item deleted
+        "404":
+          description: Pharmacy with such ID does not exist
+
+  "/products/{pharmacyId}/items":
+    get:
+      tags:
+        - pharmacyProducts
+      summary: Provides the pharmacy product list
+      operationId: getProducts
+      description: >-
+        Returns the list of products of the pharmacy.
+        Only active products are returned; soft-deleted (active=false) products are hidden.
+      parameters:
+        - in: path
+          name: pharmacyId
+          description: pass the id of the particular pharmacy
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: list of active products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+              examples:
+                response:
+                  $ref: "#/components/examples/ProductListExample"
+        "404":
+          description: Pharmacy with such ID does not exist
+    post:
+      tags:
+        - pharmacyProducts
+      summary: Saves new product into the pharmacy
+      operationId: createProduct
+      description: Use this method to add a new product to the pharmacy inventory.
+      parameters:
+        - in: path
+          name: pharmacyId
+          description: pass the id of the particular pharmacy
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+            examples:
+              request-sample:
+                $ref: "#/components/examples/ProductExample"
+        description: Product to store
+        required: true
+      responses:
+        "200":
+          description: Stored product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              examples:
+                updated-response:
+                  $ref: "#/components/examples/ProductExample"
+        "400":
+          description: Missing mandatory properties of input object.
+        "404":
+          description: Pharmacy with such ID does not exist
+        "409":
+          description: Product with the specified id already exists
+
+  "/products/{pharmacyId}/items/{productId}":
+    get:
+      tags:
+        - pharmacyProducts
+      summary: Provides details about a single product
+      operationId: getProduct
+      description: By using pharmacyId and productId you can read details of one product.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              examples:
+                response:
+                  $ref: "#/components/examples/ProductExample"
+        "404":
+          description: Pharmacy or product with such ID does not exist
+    put:
+      tags:
+        - pharmacyProducts
+      summary: Updates specific product
+      operationId: updateProduct
+      description: Use this method to update name, category, stock or active flag of a product.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+            examples:
+              request:
+                $ref: "#/components/examples/ProductExample"
+        description: Updated product
+        required: true
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+              examples:
+                response:
+                  $ref: "#/components/examples/ProductExample"
+        "404":
+          description: Pharmacy or product with such ID does not exist
+    delete:
+      tags:
+        - pharmacyProducts
+      summary: Soft-deletes a product (sets active=false)
+      operationId: deleteProduct
+      description: >-
+        Soft delete. The product's `active` flag is set to false; it stays in the
+        pharmacy.products array but is hidden from the listing endpoint.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: productId
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Product deactivated
+        "404":
+          description: Pharmacy or product with such ID does not exist
+
+  "/products/{pharmacyId}/categories":
+    get:
+      tags:
+        - pharmacyCategories
+      summary: Provides the list of categories defined for the pharmacy
+      operationId: getCategories
+      description: By using pharmacyId you get the list of predefined product categories.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: predefined categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+              examples:
+                response:
+                  $ref: "#/components/examples/CategoryListExample"
+        "404":
+          description: Pharmacy with such ID does not exist
+
+components:
+  schemas:
+    Pharmacy:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          example: lekaren-centrum
+        name:
+          type: string
+          example: Lekáreň Centrum
+        address:
+          type: string
+          example: Námestie 1, Bratislava
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        predefinedCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+      example:
+        $ref: "#/components/examples/PharmacyExample"
+
+    Product:
+      type: object
+      required: [id, name, stock, active]
+      properties:
+        id:
+          type: string
+          example: p-paralen-500
+          description: Unique id of the product within the pharmacy
+        name:
+          type: string
+          example: Paralen 500 mg
+        category:
+          $ref: "#/components/schemas/Category"
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 42
+        active:
+          type: boolean
+          example: true
+          description: Soft-delete flag; the listing endpoint hides inactive products.
+      example:
+        $ref: "#/components/examples/ProductExample"
+
+    Category:
+      type: object
+      required: [code, value]
+      properties:
+        code:
+          type: string
+          example: analgesics
+        value:
+          type: string
+          example: Analgetiká
+
+  examples:
+    PharmacyExample:
+      summary: Lekáreň Centrum
+      value:
+        id: lekaren-centrum
+        name: Lekáreň Centrum
+        address: Námestie 1, Bratislava
+        predefinedCategories:
+          - { code: analgesics,  value: Analgetiká }
+          - { code: antibiotics, value: Antibiotiká }
+          - { code: vitamins,    value: Vitamíny }
+        products:
+          - id: p-paralen-500
+            name: Paralen 500 mg
+            stock: 42
+            active: true
+            category: { code: analgesics, value: Analgetiká }
+
+    ProductExample:
+      summary: Paralen 500 mg
+      value:
+        id: p-paralen-500
+        name: Paralen 500 mg
+        stock: 42
+        active: true
+        category: { code: analgesics, value: Analgetiká }
+
+    ProductListExample:
+      summary: Two active products
+      value:
+        - id: p-paralen-500
+          name: Paralen 500 mg
+          stock: 42
+          active: true
+          category: { code: analgesics, value: Analgetiká }
+        - id: p-vitamin-c
+          name: Vitamín C 1000
+          stock: 17
+          active: true
+          category: { code: vitamins, value: Vitamíny }
+
+    CategoryListExample:
+      summary: Default pharmacy categories
+      value:
+        - { code: analgesics,  value: Analgetiká }
+        - { code: antibiotics, value: Antibiotiká }
+        - { code: vitamins,    value: Vitamíny }
+        - { code: hygiene,     value: Hygiena }
+        - { code: supplements, value: Výživové doplnky }

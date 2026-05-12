@@ -1,0 +1,8 @@
+generatorName: go-gin-server
+outputDir: /local
+inputSpec: /local/api/pharmacy-product.openapi.yaml
+enablePostProcessFile: true
+additionalProperties:
+  apiPath: internal/pharmacy_product
+  packageName: pharmacy_product
+  interfaceOnly: true

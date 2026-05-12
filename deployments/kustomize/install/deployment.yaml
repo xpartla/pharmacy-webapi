@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xpartla-pharmacy-webapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: xpartla-pharmacy-webapi-label
+  template:
+    metadata:
+      labels:
+        pod: xpartla-pharmacy-webapi-label
+    spec:
+      containers:
+        - name: xpartla-pharmacy-webapi-container
+          image: xpartla/pharmacy-webapi:latest
+          imagePullPolicy: Always
+          ports:
+            - name: webapi-port
+              containerPort: 8080
+          env:
+            - name: PHARMACY_API_ENVIRONMENT
+              value: production
+            - name: PHARMACY_API_PORT
+              value: "8080"
+            - name: PHARMACY_API_MONGODB_HOST
+              value: mongodb
+            - name: PHARMACY_API_MONGODB_PORT
+              value: "27017"
+            - name: PHARMACY_API_MONGODB_USERNAME
+              value: ""
+            - name: PHARMACY_API_MONGODB_PASSWORD
+              value: ""
+            - name: PHARMACY_API_MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: xpartla-pharmacy-webapi-config
+                  key: database
+            - name: PHARMACY_API_MONGODB_COLLECTION
+              valueFrom:
+                configMapKeyRef:
+                  name: xpartla-pharmacy-webapi-config
+                  key: collection
+            - name: PHARMACY_API_MONGODB_TIMEOUT_SECONDS
+              value: "5"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.01"
+            limits:
+              memory: "512Mi"
+              cpu: "0.3"
+        - name: openapi-ui
+          image: swaggerapi/swagger-ui
+          imagePullPolicy: Always
+          ports:
+            - name: api-ui
+              containerPort: 8081
+          env:
+            - name: PORT
+              value: "8081"
+            - name: URL
+              value: /openapi
+            - name: BASE_URL
+              value: /openapi-ui
+            - name: FILTER
+              value: 'true'
+            - name: DISPLAY_OPERATION_ID
+              value: 'true'
+          resources:
+            requests:
+              memory: "16M"
+              cpu: "0.01"
+            limits:
+              memory: "64M"
+              cpu: "0.1"
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: xpartla-pharmacy-webapi-mongodb-init
+      initContainers:
+        - name: init-mongodb
+          image: mongo:latest
+          imagePullPolicy: Always
+          command: ['mongosh', "--nodb", '-f', '/scripts/init-db.js']
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+          env:
+            - name: PHARMACY_API_PORT
+              value: "8080"
+            - name: PHARMACY_API_MONGODB_HOST
+              value: mongodb
+            - name: PHARMACY_API_MONGODB_PORT
+              value: "27017"
+            - name: PHARMACY_API_MONGODB_USERNAME
+              value: ""
+            - name: PHARMACY_API_MONGODB_PASSWORD
+              value: ""
+            - name: PHARMACY_API_MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: xpartla-pharmacy-webapi-config
+                  key: database
+            - name: PHARMACY_API_MONGODB_COLLECTION
+              valueFrom:
+                configMapKeyRef:
+                  name: xpartla-pharmacy-webapi-config
+                  key: collection
+            - name: RETRY_CONNECTION_SECONDS
+              value: "5"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "0.01"
+            limits:
+              memory: "256Mi"
+              cpu: "0.1"

@@ -1,0 +1,6 @@
+.git
+.idea
+.vscode
+*.md
+deployments
+scripts/run.ps1

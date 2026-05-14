@@ -60,6 +60,7 @@ func newTestEngine(db db_service.DbService[Pharmacy]) *gin.Engine {
 		PharmaciesAPI:         NewPharmaciesApi(),
 		PharmacyCategoriesAPI: NewPharmacyCategoriesApi(),
 		PharmacyProductsAPI:   NewPharmacyProductsApi(),
+		DepartmentOrdersAPI:   NewDepartmentOrdersApi(),
 	}
 	NewRouterWithGinEngine(engine, handlers)
 	return engine

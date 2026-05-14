@@ -11,7 +11,6 @@
 package pharmacy_product
 
 type Pharmacy struct {
-
 	Id string `json:"id"`
 
 	Name string `json:"name"`
@@ -19,6 +18,8 @@ type Pharmacy struct {
 	Address string `json:"address,omitempty"`
 
 	Products []Product `json:"products,omitempty"`
+
+	Orders []DepartmentOrder `json:"orders,omitempty"`
 
 	PredefinedCategories []Category `json:"predefinedCategories,omitempty"`
 }

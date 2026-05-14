@@ -63,6 +63,7 @@ func main() {
 		PharmaciesAPI:         pharmacy_product.NewPharmaciesApi(),
 		PharmacyCategoriesAPI: pharmacy_product.NewPharmacyCategoriesApi(),
 		PharmacyProductsAPI:   pharmacy_product.NewPharmacyProductsApi(),
+		DepartmentOrdersAPI:   pharmacy_product.NewDepartmentOrdersApi(),
 	}
 	pharmacy_product.NewRouterWithGinEngine(engine, *handlers)
 	engine.GET("/openapi", api.HandleOpenApi)

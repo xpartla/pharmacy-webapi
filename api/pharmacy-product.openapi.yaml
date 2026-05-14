@@ -14,6 +14,8 @@ info:
 tags:
   - name: pharmacyProducts
     description: Product inventory of a pharmacy
+  - name: departmentOrders
+    description: Department order management for the pharmacy
   - name: pharmacyCategories
     description: Predefined product categories for the pharmacy
   - name: pharmacies
@@ -269,6 +271,160 @@ paths:
         "404":
           description: Pharmacy with such ID does not exist
 
+  "/orders/{pharmacyId}/items":
+    get:
+      tags:
+        - departmentOrders
+      summary: Provides the department order list
+      operationId: getDepartmentOrders
+      description: Returns all department orders of the pharmacy.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: list of department orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DepartmentOrder"
+              examples:
+                response:
+                  $ref: "#/components/examples/DepartmentOrderListExample"
+        "404":
+          description: Pharmacy with such ID does not exist
+    post:
+      tags:
+        - departmentOrders
+      summary: Saves new department order into the pharmacy
+      operationId: createDepartmentOrder
+      description: Nurse creates a new order for a specific department.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentOrder"
+            examples:
+              request-sample:
+                $ref: "#/components/examples/DepartmentOrderExample"
+        description: Department order to store
+        required: true
+      responses:
+        "200":
+          description: Stored department order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentOrder"
+              examples:
+                updated-response:
+                  $ref: "#/components/examples/DepartmentOrderExample"
+        "400":
+          description: Missing mandatory properties of input object.
+        "404":
+          description: Pharmacy with such ID does not exist
+        "409":
+          description: Order with the specified id already exists
+
+  "/orders/{pharmacyId}/items/{orderId}":
+    get:
+      tags:
+        - departmentOrders
+      summary: Provides details about a single department order
+      operationId: getDepartmentOrder
+      description: By using pharmacyId and orderId you can read details of one department order.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Department order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentOrder"
+              examples:
+                response:
+                  $ref: "#/components/examples/DepartmentOrderExample"
+        "404":
+          description: Pharmacy or order with such ID does not exist
+    put:
+      tags:
+        - departmentOrders
+      summary: Updates specific department order
+      operationId: updateDepartmentOrder
+      description: Pharmacy worker updates order status and issued quantities.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentOrder"
+            examples:
+              request:
+                $ref: "#/components/examples/DepartmentOrderExample"
+        description: Updated department order
+        required: true
+      responses:
+        "200":
+          description: Updated department order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentOrder"
+              examples:
+                response:
+                  $ref: "#/components/examples/DepartmentOrderExample"
+        "404":
+          description: Pharmacy or order with such ID does not exist
+    delete:
+      tags:
+        - departmentOrders
+      summary: Cancels or archives department order
+      operationId: deleteDepartmentOrder
+      description: >-
+        If order is in `created` state it is canceled. If it is in `fulfilled` state
+        it is archived. Other states are rejected.
+      parameters:
+        - in: path
+          name: pharmacyId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Order canceled or archived
+        "404":
+          description: Pharmacy or order with such ID does not exist
+        "409":
+          description: Order cannot be canceled or archived in its current state
+
 components:
   schemas:
     Pharmacy:
@@ -288,6 +444,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Product"
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/DepartmentOrder"
         predefinedCategories:
           type: array
           items:
@@ -331,6 +491,60 @@ components:
           type: string
           example: Analgetiká
 
+    DepartmentOrder:
+      type: object
+      required: [id, departmentName, status, items]
+      properties:
+        id:
+          type: string
+          example: ord-int-001
+        departmentName:
+          type: string
+          example: Interna A
+        note:
+          type: string
+          example: Doplniť zásobu na nočnú službu.
+        status:
+          type: string
+          enum: [created, processing, fulfilled, canceled, archived]
+          example: created
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-05-14T09:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-05-14T09:15:00Z"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DepartmentOrderItem"
+
+    DepartmentOrderItem:
+      type: object
+      required: [id, productName, requestedQty, issuedQty]
+      properties:
+        id:
+          type: string
+          example: item-1
+        productId:
+          type: string
+          example: p-paralen-500
+        productName:
+          type: string
+          example: Paralen 500 mg
+        requestedQty:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 20
+        issuedQty:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 15
+
   examples:
     PharmacyExample:
       summary: Lekáreň Centrum
@@ -339,9 +553,9 @@ components:
         name: Lekáreň Centrum
         address: Námestie 1, Bratislava
         predefinedCategories:
-          - { code: analgesics,  value: Analgetiká }
+          - { code: analgesics, value: Analgetiká }
           - { code: antibiotics, value: Antibiotiká }
-          - { code: vitamins,    value: Vitamíny }
+          - { code: vitamins, value: Vitamíny }
         products:
           - id: p-paralen-500
             name: Paralen 500 mg
@@ -375,8 +589,53 @@ components:
     CategoryListExample:
       summary: Default pharmacy categories
       value:
-        - { code: analgesics,  value: Analgetiká }
+        - { code: analgesics, value: Analgetiká }
         - { code: antibiotics, value: Antibiotiká }
-        - { code: vitamins,    value: Vitamíny }
-        - { code: hygiene,     value: Hygiena }
+        - { code: vitamins, value: Vitamíny }
+        - { code: hygiene, value: Hygiena }
         - { code: supplements, value: Výživové doplnky }
+
+    DepartmentOrderExample:
+      summary: Oddelenie Interna A žiada výdaj
+      value:
+        id: ord-int-001
+        departmentName: Interna A
+        note: Doplniť zásobu na nočnú službu.
+        status: created
+        createdAt: "2026-05-14T09:00:00Z"
+        updatedAt: "2026-05-14T09:00:00Z"
+        items:
+          - id: item-1
+            productId: p-paralen-500
+            productName: Paralen 500 mg
+            requestedQty: 20
+            issuedQty: 0
+          - id: item-2
+            productId: p-vitamin-c
+            productName: Vitamín C 1000
+            requestedQty: 10
+            issuedQty: 0
+
+    DepartmentOrderListExample:
+      summary: Dve objednávky oddelení
+      value:
+        - id: ord-int-001
+          departmentName: Interna A
+          status: created
+          createdAt: "2026-05-14T09:00:00Z"
+          updatedAt: "2026-05-14T09:00:00Z"
+          items:
+            - id: item-1
+              productName: Paralen 500 mg
+              requestedQty: 20
+              issuedQty: 0
+        - id: ord-chir-002
+          departmentName: Chirurgia B
+          status: fulfilled
+          createdAt: "2026-05-14T08:00:00Z"
+          updatedAt: "2026-05-14T08:45:00Z"
+          items:
+            - id: item-1
+              productName: Betadine
+              requestedQty: 5
+              issuedQty: 5

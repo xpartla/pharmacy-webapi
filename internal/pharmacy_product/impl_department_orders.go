@@ -97,7 +97,7 @@ func (o implDepartmentOrdersAPI) CreateDepartmentOrder(c *gin.Context) {
 			}, http.StatusConflict
 		}
 
-		now := time.Now().UTC().Format(time.RFC3339)
+		now := time.Now().UTC()
 		order.Status = "created"
 		order.CreatedAt = now
 		order.UpdatedAt = now
@@ -167,7 +167,7 @@ func (o implDepartmentOrdersAPI) UpdateDepartmentOrder(c *gin.Context) {
 			existing.Items = incoming.Items
 		}
 
-		existing.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+		existing.UpdatedAt = time.Now().UTC()
 		pharmacy.Orders[idx] = existing
 		return pharmacy, existing, http.StatusOK
 	})
@@ -196,7 +196,7 @@ func (o implDepartmentOrdersAPI) DeleteDepartmentOrder(c *gin.Context) {
 				"message": "Order can be canceled only in created state or archived only in fulfilled state",
 			}, http.StatusConflict
 		}
-		pharmacy.Orders[idx].UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+		pharmacy.Orders[idx].UpdatedAt = time.Now().UTC()
 		return pharmacy, nil, http.StatusNoContent
 	})
 }

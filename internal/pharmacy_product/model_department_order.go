@@ -1,5 +1,9 @@
 package pharmacy_product
 
+import (
+	"time"
+)
+
 type DepartmentOrder struct {
 	Id string `json:"id"`
 
@@ -9,9 +13,9 @@ type DepartmentOrder struct {
 
 	Status string `json:"status"`
 
-	CreatedAt string `json:"createdAt,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 
-	UpdatedAt string `json:"updatedAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 
 	Items []DepartmentOrderItem `json:"items,omitempty"`
 }
